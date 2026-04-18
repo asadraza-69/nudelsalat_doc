@@ -178,15 +178,37 @@
             <li>PDO extension (with your target driver: <code>pdo_mysql</code>, <code>pdo_pgsql</code>, or <code>pdo_sqlite</code>)</li>
         </ul>
 
-        <h3>Composer Autoloading</h3>
-        <p>Require the package in your project:</p>
-        <pre><code>{
-    "require": {
-        "asadraza-69/nudelsalat": "^0.1"
-    }
-}</code></pre>
+        <h3>Install via Composer</h3>
+        <pre><code>composer require nudelsalat/migrations</code></pre>
 
-        <p>Then load classes with <code>vendor/autoload.php</code> and run the CLI with <code>vendor/bin/nudelsalat</code>.</p>
+        <h3>Create Configuration File</h3>
+        <p>After installation, create your configuration file in your project root:</p>
+        <pre><code>cp vendor/nudelsalat/migrations/nudelsalat.config.php.example nudelsalat.config.php</code></pre>
+
+        <p>Then edit <code>nudelsalat.config.php</code> and fill in your database credentials:</p>
+        <pre><code>&lt;?php
+return [
+    'database' => [
+        'driver' => 'mysql',  // mysql, pgsql, or sqlite
+        'dsn' => 'mysql:host=localhost;dbname=myapp',
+        'user' => 'root',
+        'pass' => 'your_password',
+    ],
+    'apps' => [
+        'main' => [
+            'models' => __DIR__ . '/src/Models',
+            'migrations' => __DIR__ . '/database/migrations',
+        ],
+    ],
+];</code></pre>
+
+        <div class="callout">
+            <span class="callout-icon">💡</span>
+            <p>You can also use SQLite for local development: <code>'dsn' => 'sqlite:' . __DIR__ . '/database/database.sqlite'</code></p>
+        </div>
+
+        <h3>Run the CLI</h3>
+        <pre><code>./vendor/bin/nudelsalat --version</code></pre>
 
         <div class="alert alert-warning">
             <strong>PHP requirement:</strong> Nudelsalat uses constructor property promotion, named arguments, match expressions, and <code>str_starts_with()</code> — all requiring PHP 8.1+.

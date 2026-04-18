@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
-                const id = entry.target.getAttribute('id') || 'why-nudelsalat';
+                const id = entry.target.getAttribute('id') || 'why-beef';
                 navLinks.forEach(link => {
                     link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
                 });
