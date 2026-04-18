@@ -1,0 +1,2032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nudelsalat — Developer Documentation</title>
+    <meta name="description" content="Complete developer reference for Nudelsalat, the state-based database migration engine for PHP.">
+    <link rel="stylesheet" href="styles.css?v=2">
+    <link rel="icon" href="logo.png">
+</head>
+<body>
+
+<!-- ══════════════════════════════════ SIDEBAR ══════════════════════════════════ -->
+<aside class="sidebar">
+    <div class="logo-wrap">
+        <img src="logo.png" alt="Nudelsalat Logo">
+        <div class="brand">
+            <span class="brand-name">Nudelsalat</span>
+            <span class="brand-ver">v1.0 · PHP 8.1+</span>
+        </div>
+    </div>
+    <nav>
+        <div class="nav-group">
+            <span class="nav-label">Introduction</span>
+            <ul class="nav-links">
+                <li><a href="#why-nudelsalat" class="active">Why Nudelsalat?</a></li>
+                <li><a href="#installation">Installation</a></li>
+                <li><a href="#quickstart">Quick Start</a></li>
+                <li><a href="#configuration">Configuration</a></li>
+            </ul>
+        </div>
+        <div class="nav-group">
+            <span class="nav-label">The Model Layer</span>
+            <ul class="nav-links">
+                <li><a href="#models">Defining Models</a></li>
+                <li><a href="#fields">Field Types</a></li>
+                <li><a href="#field-options">Field Options</a></li>
+                <li><a href="#meta-options">Model Meta Options</a></li>
+                <li><a href="#relationships">Relationships</a></li>
+                <li><a href="#orm-crud">ORM: CRUD Operations</a></li>
+                <li><a href="#orm-aggregations">ORM: Aggregations</a></li>
+                <li><a href="#orm-rawsql">ORM: Raw SQL</a></li>
+                <li><a href="#orm-pagination">ORM: Pagination</a></li>
+                <li><a href="#orm-transactions">ORM: Transactions</a></li>
+                <li><a href="#orm-signals">ORM: Signals</a></li>
+                <li><a href="#orm-validation">ORM: Validation</a></li>
+                <li><a href="#orm-abstract-proxy">ORM: Abstract & Proxy</a></li>
+            </ul>
+        </div>
+        <div class="nav-group">
+            <span class="nav-label">Command Encyclopedia</span>
+            <ul class="nav-links">
+                <li><a href="#cmd-make">makemigrations</a></li>
+                <li><a href="#cmd-migrate">migrate</a></li>
+                <li><a href="#cmd-show">show</a></li>
+                <li><a href="#cmd-check">check</a></li>
+                <li><a href="#cmd-sqlmigrate">sqlmigrate</a></li>
+                <li><a href="#cmd-introspect">introspect</a></li>
+                <li><a href="#cmd-merge">merge</a></li>
+                <li><a href="#cmd-squash">squash</a></li>
+                <li><a href="#cmd-optimize">optimize</a></li>
+                <li><a href="#cmd-dumpdata">dumpdata</a></li>
+                <li><a href="#cmd-loaddata">loaddata</a></li>
+                <li><a href="#cmd-seed">seed</a></li>
+                <li><a href="#cmd-scaffold">scaffold</a></li>
+            </ul>
+        </div>
+        <div class="nav-group">
+            <span class="nav-label">Operation API</span>
+            <ul class="nav-links">
+                <li><a href="#ops-schema">Schema Operations</a></li>
+                <li><a href="#ops-logic">Logic Operations</a></li>
+                <li><a href="#ops-writing">Writing a Migration</a></li>
+            </ul>
+        </div>
+        <div class="nav-group">
+            <span class="nav-label">Internals</span>
+            <ul class="nav-links">
+                <li><a href="#autodetector">Autodetector</a></li>
+                <li><a href="#graph">Migration Graph (DAG)</a></li>
+                <li><a href="#executor">Executor Pipeline</a></li>
+                <li><a href="#state-registry">State Registry</a></li>
+                <li><a href="#integrity">Integrity Shield</a></li>
+                <li><a href="#transactions">Transaction Control</a></li>
+                <li><a href="#squash-optimizer">Squash Optimizer</a></li>
+                <li><a href="#validator">Validator</a></li>
+            </ul>
+        </div>
+        <div class="nav-group">
+            <span class="nav-label">Database Backends</span>
+            <ul class="nav-links">
+                <li><a href="#schema-editor">SchemaEditor API</a></li>
+                <li><a href="#postgresql">PostgreSQL</a></li>
+                <li><a href="#mysql">MySQL / MariaDB</a></li>
+                <li><a href="#sqlite">SQLite</a></li>
+            </ul>
+        </div>
+        <div class="nav-group">
+            <span class="nav-label">Deployment &amp; Testing</span>
+            <ul class="nav-links">
+                <li><a href="#deployment">Deployment Strategy</a></li>
+                <li><a href="#testing">Testing Suite</a></li>
+                <li><a href="#roadmap">Roadmap</a></li>
+            </ul>
+        </div>
+    </nav>
+</aside>
+
+<!-- ══════════════════════════════════ MAIN ══════════════════════════════════ -->
+<main class="main-content">
+
+    <!-- Hero -->
+    <div class="hero">
+        <p class="hero-eyebrow">Developer Documentation</p>
+        <h1>The Nudelsalat Engine</h1>
+        <p class="hero-sub">State-based database migrations for PHP with full ORM support. Framework-agnostic, driver-aware, integrity-guaranteed.</p>
+        <div class="hero-badges">
+            <span class="badge badge-php">PHP ≥ 8.1</span>
+            <span class="badge badge-green">55 Tests Passing</span>
+            <span class="badge badge-red">State-Based</span>
+            <span class="badge badge-blue">MySQL · PostgreSQL · SQLite</span>
+            <span class="badge badge-purple">Full ORM</span>
+        </div>
+    </div>
+
+    <!-- ── WHY NUDELSALAT ─────────────────────────────────────────────────── -->
+    <section id="why-nudelsalat">
+        <h2>Why Nudelsalat?</h2>
+        <p>Most PHP migration libraries ask you to write SQL or a series of schema methods by hand — a <em>script-based</em> approach. Nudelsalat follows a <strong>state-based</strong> philosophy: you describe what your schema <em>looks like</em> (via Model classes), and Nudelsalat figures out what SQL is needed to get there.</p>
+
+        <div class="card-grid">
+            <div class="card">
+                <div class="card-icon">🧠</div>
+                <div class="card-title">Intelligent Autodetector</div>
+                <div class="card-desc">Compares two ProjectState snapshots and generates the minimal set of operations — including interactive rename detection.</div>
+            </div>
+            <div class="card">
+                <div class="card-icon">🛡️</div>
+                <div class="card-title">Integrity Shield</div>
+                <div class="card-desc">SHA256 checksums stored on every applied migration detect silent file edits and prevent database desync.</div>
+            </div>
+            <div class="card">
+                <div class="card-icon">📊</div>
+                <div class="card-title">DAG Dependency Graph</div>
+                <div class="card-desc">A Directed Acyclic Graph resolves topological order for cross-app dependencies and detects circular references.</div>
+            </div>
+            <div class="card">
+                <div class="card-icon">🗄️</div>
+                <div class="card-title">Multi-Driver</div>
+                <div class="card-desc">Native SchemaEditor implementations for PostgreSQL, MySQL/MariaDB, and SQLite with per-driver SQL generation.</div>
+            </div>
+            <div class="card">
+                <div class="card-icon">⏳</div>
+                <div class="card-title">Historical Models</div>
+                <div class="card-desc">The StateRegistry freezes model definitions at migration time, so data migrations never break even if models are deleted later.</div>
+            </div>
+            <div class="card">
+                <div class="card-icon">🔗</div>
+                <div class="card-title">Full ORM Layer</div>
+                <div class="card-desc">Complete QuerySet with CRUD, aggregations, raw SQL, pagination, transactions, signals, and validation. Same API across all databases.</div>
+            </div>
+            <div class="card">
+                <div class="card-icon">🧪</div>
+                <div class="card-title">Battle-Tested</div>
+                <div class="card-desc">55+ test suite run in Docker against PostgreSQL, MySQL, and SQLite, with smoke-testing on a 147-table production schema.</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── INSTALLATION ─────────────────────────────────────────────── -->
+    <section id="installation">
+        <h2>Installation</h2>
+        <p>Nudelsalat is a Composer package with a CLI binary. Install it into your project and load it through Composer's autoloader.</p>
+
+        <h3>Requirements</h3>
+        <ul>
+            <li>PHP <strong>8.1</strong> or higher</li>
+            <li>PDO extension (with your target driver: <code>pdo_mysql</code>, <code>pdo_pgsql</code>, or <code>pdo_sqlite</code>)</li>
+        </ul>
+
+        <h3>Composer Autoloading</h3>
+        <p>Require the package in your project:</p>
+        <pre><code>{
+    "require": {
+        "asadraza-69/nudelsalat": "^0.1"
+    }
+}</code></pre>
+
+        <p>Then load classes with <code>vendor/autoload.php</code> and run the CLI with <code>vendor/bin/nudelsalat</code>.</p>
+
+        <div class="alert alert-warning">
+            <strong>PHP requirement:</strong> Nudelsalat uses constructor property promotion, named arguments, match expressions, and <code>str_starts_with()</code> — all requiring PHP 8.1+.
+        </div>
+    </section>
+
+    <!-- ── QUICK START ──────────────────────────────────────────────── -->
+    <section id="quickstart">
+        <h2>Quick Start</h2>
+        <ol class="steps">
+            <li>
+                <div>
+                    <strong>Copy the example config and fill in your database credentials.</strong>
+                    <pre><code>cp nudelsalat/nudelsalat.config.php.example nudelsalat/nudelsalat.config.php</code></pre>
+                </div>
+            </li>
+            <li>
+                <div>
+                    <strong>Define your first Model.</strong>
+                    <pre><code>namespace App\Models;
+
+use Nudelsalat\ORM\Model;
+use Nudelsalat\Migrations\Fields\IntField;
+use Nudelsalat\Migrations\Fields\StringField;
+
+class User extends Model {
+    public static function fields(): array {
+        return [
+            'id'    => new IntField(primaryKey: true, autoIncrement: true),
+            'email' => new StringField(length: 200),
+            'name'  => new StringField(length: 100, nullable: true),
+        ];
+    }
+}</code></pre>
+                </div>
+            </li>
+            <li>
+                <div>
+                    <strong>Generate the migration.</strong>
+                    <pre><code>./nudelsalat make</code></pre>
+                    <p>Nudelsalat scans your model directory, compares it to the current migration state, and writes a <code>.php</code> migration file.</p>
+                </div>
+            </li>
+            <li>
+                <div>
+                    <strong>Apply the migration.</strong>
+                    <pre><code>./nudelsalat migrate</code></pre>
+                </div>
+            </li>
+            <li>
+                <div>
+                    <strong>Verify the status.</strong>
+                    <pre><code>./nudelsalat show</code></pre>
+                </div>
+            </li>
+        </ol>
+    </section>
+
+    <!-- ── CONFIGURATION ────────────────────────────────────────────── -->
+    <section id="configuration">
+        <h2>Configuration</h2>
+        <p>All settings live in <code>nudelsalat.config.php</code> which returns a plain PHP array.</p>
+        <pre><code>&lt;?php
+return [
+    'database' => [
+        'driver' => 'pgsql',          // mysql | pgsql | sqlite
+        'dsn'    => 'pgsql:host=localhost;dbname=mydb;port=5432',
+        'user'   => 'postgres',
+        'pass'   => getenv('DB_PASS'),
+    ],
+
+    'apps' => [
+        // Each app has a models directory and a migrations directory.
+        'main' => [
+            'models'     => __DIR__ . '/src/Models',
+            'migrations' => __DIR__ . '/database/migrations',
+        ],
+
+        // Multi-app support: cross-app ForeignKeys just work.
+        'auth' => [
+            'models'     => __DIR__ . '/src/Auth/Models',
+            'migrations' => __DIR__ . '/database/auth_migrations',
+        ],
+    ],
+];</code></pre>
+
+        <h3>Environment Variables</h3>
+        <p>Use <code>getenv()</code> in your config to keep secrets out of version control. The example config uses <code>BEEF_DB_DSN</code>, <code>BEEF_DB_USER</code>, and <code>BEEF_DB_PASS</code> by default.</p>
+    </section>
+
+    <!-- ══════════════════ MODEL LAYER ══════════════════ -->
+
+    <section id="models">
+        <h2>Defining Models</h2>
+        <p>Every model extends <code>Nudelsalat\ORM\Model</code> and implements a single static method: <code>fields()</code>. The Inspector reads these at runtime to construct the current <code>ProjectState</code>.</p>
+
+        <pre><code>namespace App\Models;
+
+use Nudelsalat\ORM\Model;
+use Nudelsalat\Migrations\Fields\{IntField, StringField, DecimalField, BooleanField};
+use Nudelsalat\Migrations\Fields\ForeignKey;
+
+class Product extends Model {
+    // Override the inferred table name (default: lowercase class name)
+    public static array $options = [
+        'db_table' => 'store_products',
+    ];
+
+    public static function fields(): array {
+        return [
+            'id'       => new IntField(primaryKey: true, autoIncrement: true),
+            'sku'      => new StringField(length: 80),
+            'price'    => new DecimalField(maxDigits: 10, decimalPlaces: 2),
+            'active'   => new BooleanField(default: true),
+            'category' => new ForeignKey(to: 'Category', onDelete: 'CASCADE'),
+        ];
+    }
+}</code></pre>
+
+        <div class="callout">
+            <span class="callout-icon">💡</span>
+            <p><strong>Table name inference:</strong> By default, Nudelsalat derives the table name from the short class name lowercased (e.g. <code>BlogPost</code> → <code>blogpost</code>). Override with <code>$options['db_table']</code>.</p>
+        </div>
+    </section>
+
+    <!-- ── FIELD TYPES ──────────────────────────────────────────────── -->
+    <section id="fields">
+        <h2>Field Types</h2>
+        <p>All field classes extend <code>Nudelsalat\Migrations\Fields\Field</code> and live in <code>src/Migrations/Fields/</code>. Each implements <code>getType()</code> and optionally overrides <code>deconstruct()</code> for migration serialization.</p>
+
+        <div class="table-wrap">
+        <table>
+            <thead><tr><th>Class</th><th>SQL Type</th><th>Extra Parameters</th><th>Notes</th></tr></thead>
+            <tbody>
+                <tr><td><code>IntField</code></td><td><code>INT</code></td><td>—</td><td>Use with <code>primaryKey + autoIncrement</code> for surrogate PKs.</td></tr>
+                <tr><td><code>StringField</code></td><td><code>VARCHAR(n)</code></td><td><code>length</code> (default 255)</td><td>Length is embedded in the SQL type string.</td></tr>
+                <tr><td><code>TextField</code></td><td><code>TEXT</code></td><td>—</td><td>Unbounded text; no length constraint.</td></tr>
+                <tr><td><code>BooleanField</code></td><td><code>BOOLEAN</code></td><td>—</td><td>Driver handles mapping; SQLite stores as <code>0/1</code>.</td></tr>
+                <tr><td><code>DecimalField</code></td><td><code>DECIMAL</code></td><td><code>maxDigits</code>, <code>decimalPlaces</code></td><td>High-precision for currency. Defaults: 19 digits, 4 places.</td></tr>
+                <tr><td><code>DateTimeField</code></td><td><code>DATETIME</code></td><td>—</td><td>Maps to <code>TIMESTAMP</code> on PostgreSQL.</td></tr>
+                <tr><td><code>JSONField</code></td><td>See backends</td><td>—</td><td><code>JSONB</code> on PgSQL, <code>JSON</code> on MySQL, <code>TEXT</code> on SQLite. Has <code>toPhp()</code>/<code>toDatabase()</code> helpers.</td></tr>
+            </tbody>
+        </table>
+        </div>
+    </section>
+
+    <!-- ── FIELD OPTIONS ────────────────────────────────────────────── -->
+    <section id="field-options">
+        <h2>Field Options</h2>
+        <p>All field constructors accept the following base parameters (inherited from <code>Field</code>):</p>
+        <div class="table-wrap">
+        <table>
+            <thead><tr><th>Parameter</th><th>Type</th><th>Default</th><th>Effect</th></tr></thead>
+            <tbody>
+                <tr><td><code>nullable</code></td><td>bool</td><td><code>false</code></td><td>Allows <code>NULL</code> in the column. Nudelsalat will emit <code>NULL</code> instead of <code>NOT NULL</code>.</td></tr>
+                <tr><td><code>default</code></td><td>mixed</td><td><code>null</code></td><td>Sets a column-level <code>DEFAULT</code>. Required for non-nullable <code>AddField</code> ops on non-empty tables — Nudelsalat will prompt you interactively if missing.</td></tr>
+                <tr><td><code>primaryKey</code></td><td>bool</td><td><code>false</code></td><td>Marks this column as the table's PRIMARY KEY.</td></tr>
+                <tr><td><code>autoIncrement</code></td><td>bool</td><td><code>false</code></td><td>Enables <code>AUTO_INCREMENT</code> / <code>SERIAL</code> behaviour.</td></tr>
+                <tr><td><code>options</code></td><td>array</td><td><code>[]</code></td><td>Driver-specific extras passed through to the SchemaEditor. Use for <code>db_index</code>, <code>unique</code>, <code>db_column</code>, etc.</td></tr>
+            </tbody>
+        </table>
+        </div>
+
+        <h3>Common <code>options</code> Keys</h3>
+        <div class="table-wrap">
+        <table>
+            <thead><tr><th>Key</th><th>Effect</th></tr></thead>
+            <tbody>
+                <tr><td><code>db_column</code></td><td>Override the physical column name (if different from the PHP key).</td></tr>
+                <tr><td><code>db_index</code></td><td>Auto-create a single-column index for this field.</td></tr>
+                <tr><td><code>unique</code></td><td>Emit a <code>UNIQUE</code> constraint on the column.</td></tr>
+            </tbody>
+        </table>
+        </div>
+    </section>
+
+    <!-- ── META OPTIONS ─────────────────────────────────────────────── -->
+    <section id="meta-options">
+        <h2>Model Meta Options</h2>
+        <p>Set <code>public static array $options = [...]</code> on a Model class to control how Nudelsalat treats the model.</p>
+        <div class="table-wrap">
+        <table>
+            <thead><tr><th>Option</th><th>Type</th><th>Effect</th></tr></thead>
+            <tbody>
+                <tr><td><code>db_table</code></td><td>string</td><td>Override the auto-derived table name.</td></tr>
+                <tr><td><code>managed</code></td><td>bool (default <code>true</code>)</td><td>Set to <code>false</code> to exclude this model from Nudelsalat's migration management. Nudelsalat will never touch its table.</td></tr>
+                <tr><td><code>proxy</code></td><td>bool (default <code>false</code>)</td><td>Mark a model as a proxy — Nudelsalat skips it during CreateModel/DeleteModel detection. Useful for adding methods to existing tables.</td></tr>
+                <tr><td><code>abstract</code></td><td>bool (default <code>false</code>)</td><td>Mark a model as abstract — no database table is created. Used for base classes with shared fields.</td></tr>
+                <tr><td><code>m2m</code></td><td>array (internal)</td><td>Populated automatically by the Inspector when a <code>ManyToManyField</code> is found. Do not set manually.</td></tr>
+            </tbody>
+        </table>
+        </div>
+    </section>
+
+    <!-- ── RELATIONSHIPS ────────────────────────────────────────────── -->
+    <section id="relationships">
+        <h2>Relationships</h2>
+        <h3>ForeignKey</h3>
+        <p>Adds a <code>{field}_id</code> column and an <code>AddForeignKey</code> constraint. The Inspector automatically names the constraint <code>fk_{table}_{column}_id</code>.</p>
+        <pre><code>use Nudelsalat\Migrations\Fields\ForeignKey;
+
+'author' => new ForeignKey(
+    to: 'User',          // target model name (table name)
+    onDelete: 'CASCADE'  // CASCADE | SET NULL | RESTRICT | NO ACTION
+)</code></pre>
+
+        <h3>ManyToManyField</h3>
+        <p>Declares an M2M relationship. The Autodetector creates a junction table with two <code>ForeignKey</code> columns and two FK constraints.</p>
+        <pre><code>use Nudelsalat\Migrations\Fields\ManyToManyField;
+
+'tags' => new ManyToManyField(
+    to: 'Tag',
+    dbTable: 'article_tags'  // optional — defaults to "{model}_{field}"
+)</code></pre>
+
+        <div class="callout">
+            <span class="callout-icon">⚙️</span>
+            <p>The generated junction table contains: <code>id</code> (PK, auto-increment), <code>{source}_id</code>, and <code>{target}_id</code>, each with a proper FK constraint.</p>
+        </div>
+    </section>
+
+    <!-- ══════════════════ ORM CRUD OPERATIONS ══════════════════════ -->
+
+    <section id="orm-crud">
+        <h2>ORM: CRUD Operations</h2>
+        <p>Nudelsalat provides a complete ORM layer for interacting with your database. All models extend <code>Nudelsalat\ORM\Model</code> which provides methods for creating, reading, updating, and deleting records.</p>
+
+        <h3>Creating Records</h3>
+        <pre><code>use App\Models\User;
+
+// Create and save a new record
+$user = new User();
+$user->name = 'John Doe';
+$user->email = 'john@example.com';
+$user->save();
+
+// Or use create() for mass assignment
+$user = User::create([
+    'name' => 'Jane Smith',
+    'email' => 'jane@example.com',
+]);</code></pre>
+
+        <h3>Reading Records</h3>
+        <pre><code>// Get all records
+$users = User::all();
+
+// Get by primary key
+$user = User::get(1);
+
+// Find first matching record
+$user = User::first(['email' => 'john@example.com']);
+
+// Find all matching records
+$users = User::where(['status' => 'active']);
+
+// Using the Query Builder fluent interface
+$users = User::query()
+    ->where('status', '=', 'active')
+    ->orderBy('created_at', 'DESC')
+    ->limit(10)
+    ->get();</code></pre>
+
+        <h3>Updating Records</h3>
+        <pre><code>// Update a single record
+$user = User::get(1);
+$user->name = 'John Updated';
+$user->save();
+
+// Bulk update
+User::where(['status' => 'inactive'])->update(['status' => 'archived']);
+
+// Using query builder
+User::query()
+    ->where('last_login', '<', $cutoffDate)
+    ->update(['active' => false]);</code></pre>
+
+        <h3>Deleting Records</h3>
+        <pre><code>// Delete a single record
+$user = User::get(1);
+$user->delete();
+
+// Bulk delete
+User::where(['status' => 'deleted'])->delete();
+
+// Using query builder
+User::query()
+    ->where('created_at', '<', $oldDate)
+    ->delete();</code></pre>
+
+        <h3>getOrCreate</h3>
+        <p>Find an existing record or create a new one if not found. Useful for avoiding duplicate entries.</p>
+        <pre><code>// Returns existing record if found, otherwise creates new
+$user = User::getOrCreate(
+    ['email' => 'john@example.com'],  // lookup attributes
+    ['name' => 'John Doe']            // attributes to set if creating
+);</code></pre>
+
+        <h3>updateOrCreate</h3>
+        <p>Update an existing record or create a new one if not found.</p>
+        <pre><code>// Update if exists, create if not
+$user = User::updateOrCreate(
+    ['email' => 'john@example.com'],  // lookup attributes
+    ['name' => 'John Updated', 'status' => 'active']  // values to update/set
+);</code></pre>
+
+        <h3>Model API Reference</h3>
+        <div class="table-wrap">
+        <table>
+            <thead><tr><th>Method</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><code>static all(): array</code></td><td>Get all records as array of Model instances</td></tr>
+                <tr><td><code>static get(mixed $id): ?static</code></td><td>Get record by primary key</td></tr>
+                <tr><td><code>static first(array $where): ?static</code></td><td>Get first record matching conditions</td></tr>
+                <tr><td><code>static where(array $where): Query</code></td><td>Start a query with WHERE conditions</td></tr>
+                <tr><td><code>static query(): Query</code></td><td>Get a fresh Query builder instance</td></tr>
+                <tr><td><code>static create(array $data): static</code></td><td>Create and save a new record</td></tr>
+                <tr><td><code>static getOrCreate(array $lookup, array $defaults): static</code></td><td>Find or create record</td></tr>
+                <tr><td><code>static updateOrCreate(array $lookup, array $data): static</code></td><td>Update or create record</td></tr>
+                <tr><td><code>save(): bool</code></td><td>Insert or update the current record</td></tr>
+                <tr><td><code>delete(): bool</code></td><td>Delete the current record</td></tr>
+                <tr><td><code>refresh(): void</code></td><td>Reload attributes from database</td></tr>
+                <tr><td><code>toArray(): array</code></td><td>Convert model to array</td></tr>
+            </tbody>
+        </table>
+        </div>
+    </section>
+
+    <!-- ══════════════════ ORM AGGREGATIONS ══════════════════════ -->
+
+    <section id="orm-aggregations">
+        <h2>ORM: Aggregations</h2>
+        <p>Nudelsalat provides aggregation functions that perform calculations on your dataset. All aggregations return a scalar value.</p>
+
+        <h3>Available Aggregation Functions</h3>
+        <div class="table-wrap">
+        <table>
+            <thead><tr><th>Function</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><code>Sum($field)</code></td><td>Calculate total sum of a numeric field</td></tr>
+                <tr><td><code>Avg($field)</code></td><td>Calculate average value of a field</td></tr>
+                <tr><td><code>Min($field)</code></td><td>Get minimum value of a field</td></tr>
+                <tr><td><code>Max($field)</code></td><td>Get maximum value of a field</td></tr>
+                <tr><td><code>Count($field = '*')</code></td><td>Count records or distinct values</td></tr>
+            </tbody>
+        </table>
+        </div>
+
+        <h3>Using Aggregations</h3>
+        <pre><code>use Nudelsalat\ORM\Aggregates\Sum;
+use Nudelsalat\ORM\Aggregates\Avg;
+use Nudelsalat\ORM\Aggregates\Min;
+use Nudelsalat\ORM\Aggregates\Max;
+use Nudelsalat\ORM\Aggregates\Count;
+use App\Models\Order;
+
+// Count all orders
+$totalOrders = Order::aggregate(new Count());
+
+// Count with conditions
+$activeUsers = User::aggregate(new Count('id'), ['status' => 'active']);
+
+// Sum a numeric field
+$totalRevenue = Order::aggregate(new Sum('total'));
+
+// Average value
+$avgPrice = Product::aggregate(new Avg('price'));
+
+// Min/Max values
+$minPrice = Product::aggregate(new Min('price'));
+$maxPrice = Product::aggregate(new Max('price'));</code></pre>
+
+        <h3>Using Aggregations with Query Builder</h3>
+        <pre><code>// Using the aggregate() method on Query
+$stats = Order::query()
+    ->where('status', '=', 'completed')
+    ->aggregate(new Sum('total'));
+
+// Or use aggregate with groupBy (returns array)
+$byCategory = Product::query()
+    ->groupBy('category_id')
+    ->aggregate(new Count('id'), [], 'category_id');</code></pre>
+
+        <h3>F Expressions</h3>
+        <p>Use <code>F</code> expressions to reference field values in queries — useful for comparisons and calculations.</p>
+        <pre><code>use Nudelsalat\ORM\Expressions\F;
+
+// Find products where price equals cost
+$products = Product::query()
+    ->where('price', '=', new F('cost'))
+    ->get();
+
+// Find orders where quantity is less than stock
+$lowStock = Product::query()
+    ->where('quantity', '<', new F('reorder_level'))
+    ->get();</code></pre>
+
+        <h3>Q Objects (Complex Queries)</h3>
+        <p>Use <code>Q</code> objects to build complex queries with OR, AND, and NOT operations.</p>
+        <pre><code>use Nudelsalat\ORM\Expressions\Q;
+
+// AND conditions (default)
+$activeAdmins = User::query()
+    ->where(new Q(['status' => 'active', 'role' => 'admin']))
+    ->get();
+
+// OR conditions
+$premiumOrVIP = User::query()
+    ->where(
+        new Q(['subscription' => 'premium'], 'OR'),
+        new Q(['is_vip' => true], 'OR')
+    )
+    ->get();
+
+// NOT conditions
+$inactiveUsers = User::query()
+    ->where(new Q(['status' => 'active'], 'NOT'))
+    ->get();
+
+// Nested conditions
+$query = new Q([
+    'status' => 'active',
+    'role' => 'admin',
+], 'AND', [
+    new Q(['last_login' => null], 'OR'),
+    new Q('last_login', '<', $thirtyDaysAgo)
+]);</code></pre>
+    </section>
+
+    <!-- ══════════════════ ORM RAW SQL ══════════════════════ -->
+
+    <section id="orm-rawsql">
+        <h2>ORM: Raw SQL</h2>
+        <p>When you need full control, Nudelsalat allows executing raw SQL queries with parameter binding for security.</p>
+
+        <h3>raw() Method</h3>
+        <pre><code>use App\Models\User;
+
+// Execute a raw SELECT query
+$results = User::raw(
+    'SELECT * FROM users WHERE status = ? AND created_at > ?',
+    ['active', '2024-01-01']
+);
+
+// Get single value from raw query
+$user = User::raw(
+    'SELECT * FROM users WHERE email = ? LIMIT 1',
+    ['john@example.com']
+)->first();
+
+// Raw INSERT
+User::raw(
+    'INSERT INTO users (name, email, created_at) VALUES (?, ?, NOW())',
+    ['John Doe', 'john@example.com']
+);
+
+// Raw UPDATE
+User::raw(
+    'UPDATE users SET status = ? WHERE last_login < ?',
+    ['inactive', $cutoffDate]
+);
+
+// Raw DELETE
+User::raw(
+    'DELETE FROM users WHERE status = ? AND created_at < ?',
+    ['deleted', $oldDate]
+);</code></pre>
+
+        <h3>Using Query Builder with Raw SQL</h3>
+        <pre><code>// Use select() for custom SELECT statements
+$results = User::query()
+    ->select('id, name, email, status')
+    ->where('status', '=', 'active')
+    ->get();
+
+// Use raw() in conjunction with query builder
+$results = User::query()
+    ->whereRaw('status = ? AND created_at > ?', ['active', $date])
+    ->get();</code></pre>
+
+        <div class="alert alert-warning">
+            <strong>Security:</strong> Always use parameter placeholders (?) instead of string interpolation to prevent SQL injection attacks.
+        </div>
+    </section>
+
+    <!-- ══════════════════ ORM PAGINATION ══════════════════════ -->
+
+    <section id="orm-pagination">
+        <h2>ORM: Pagination</h2>
+        <p>Nudelsalat provides built-in pagination support for efficiently handling large datasets.</p>
+
+        <h3>Using the Paginator</h3>
+        <pre><code>use App\Models\User;
+use Nudelsalat\ORM\Paginator;
+
+// Paginate with default settings (15 per page)
+$paginator = User::paginate();
+
+// Custom page size
+$paginator = User::paginate(perPage: 25);
+
+// Paginate with conditions
+$paginator = User::paginate(
+    perPage: 20,
+    conditions: ['status' => 'active']
+);
+
+// Using query builder
+$paginator = User::query()
+    ->where('status', '=', 'active')
+    ->orderBy('created_at', 'DESC')
+    ->paginate(perPage: 15);</code></pre>
+
+        <h3>Paginator Results</h3>
+        <pre><code>$paginator = User::paginate(perPage: 20);
+
+// Get the current page items
+$users = $paginator->items();
+
+// Get pagination metadata
+$currentPage = $paginator->currentPage();    // 1
+$totalPages = $paginator->totalPages();      // 5
+$totalItems = $paginator->totalItems();      // 100
+$perPage = $paginator->perPage();           // 20
+
+// Check navigation state
+$hasNextPage = $paginator->hasNextPage();   // true
+$hasPrevPage = $paginator->hasPrevPage();   // false
+
+// Get next/previous page numbers
+$nextPage = $paginator->nextPage();          // 2
+$prevPage = $paginator->prevPage();        // null</code></pre>
+
+        <h3>Manual Pagination</h3>
+        <pre><code>// For more control, use the Paginator class directly
+$paginator = new Paginator(
+    query: User::query()->where('status', '=', 'active'),
+    perPage: 10,
+    page: (int) ($_GET['page'] ?? 1)
+);
+
+// Or use limit/offset directly
+$users = User::query()
+    ->limit(20)
+    ->offset(40)
+    ->get();</code></pre>
+
+        <h3>Paginator API</h3>
+        <div class="table-wrap">
+        <table>
+            <thead><tr><th>Method</th><th>Return Type</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><code>items()</code></td><td>array</td><td>Current page items as Model instances</td></tr>
+                <tr><td><code>currentPage()</code></td><td>int</td><td>Current page number (1-based)</td></tr>
+                <tr><td><code>totalPages()</code></td><td>int</td><td>Total number of pages</td></tr>
+                <tr><td><code>totalItems()</code></td><td>int</td><td>Total record count</td></tr>
+                <tr><td><code>perPage()</code></td><td>int</td><td>Items per page</td></tr>
+                <tr><td><code>hasNextPage()</code></td><td>bool</td><td>Check if there's a next page</td></tr>
+                <tr><td><code>hasPrevPage()</code></td><td>bool</td><td>Check if there's a previous page</td></tr>
+                <tr><td><code>nextPage(): ?int</code></td><td>?int</td><td>Next page number or null</td></tr>
+                <tr><td><code>prevPage(): ?int</code></td><td>?int</td><td>Previous page number or null</td></tr>
+            </tbody>
+        </table>
+        </div>
+    </section>
+
+    <!-- ══════════════════ ORM TRANSACTIONS ══════════════════════ -->
+
+    <section id="orm-transactions">
+        <h2>ORM: Transactions</h2>
+        <p>Nudelsalat supports atomic transactions to ensure data integrity when performing multiple database operations.</p>
+
+        <h3>Using Transactions</h3>
+        <pre><code>use Nudelsalat\ORM\Model;
+
+// Begin a transaction manually
+Model::transaction(function() {
+    // All operations in this closure are atomic
+    $order = Order::create([
+        'total' => 100.00,
+        'status' => 'pending',
+    ]);
+
+    // Deduct inventory
+    Product::where('id', $productId)->update([
+        'stock' => Product::first(['id' => $productId])->stock - 1
+    ]);
+
+    // Create order items
+    OrderItem::create([
+        'order_id' => $order->id,
+        'product_id' => $productId,
+        'quantity' => 1,
+        'price' => 100.00,
+    ]);
+});</code></pre>
+
+        <h3>Manual Transaction Control</h3>
+        <pre><code>use Nudelsalat\Database\Connection;
+
+// Get the connection and control manually
+$conn = Connection::getInstance();
+
+// Begin transaction
+$conn->beginTransaction();
+
+try {
+    // Perform operations
+    $user = User::create(['name' => 'John', 'email' => 'john@example.com']);
+    $profile = Profile::create(['user_id' => $user->id, 'bio' => 'Hello']);
+
+    // Commit
+    $conn->commit();
+} catch (\Exception $e) {
+    // Rollback on error
+    $conn->rollback();
+    throw $e;
+}</code></pre>
+
+        <h3>Transaction Isolation Levels</h3>
+        <pre><code>// Set isolation level before beginning
+$conn = Connection::getInstance();
+$conn->exec('SET TRANSACTION ISOLATION LEVEL SERIALIZABLE');
+$conn->beginTransaction();</code></pre>
+
+        <div class="callout">
+            <span class="callout-icon">💡</span>
+            <p>PostgreSQL fully supports transactional DDL, meaning schema changes (like CREATE TABLE) can be rolled back. MySQL auto-commits DDL statements, but Nudelsalat's transaction wrapper protects data operations.</p>
+        </div>
+    </section>
+
+    <!-- ══════════════════ ORM SIGNALS ══════════════════════ -->
+
+    <section id="orm-signals">
+        <h2>ORM: Signals</h2>
+        <p>Nudelsalat emits signals (events) during the model lifecycle, allowing you to hook into save, delete, and other operations.</p>
+
+        <h3>Available Signals</h3>
+        <div class="table-wrap">
+        <table>
+            <thead><tr><th>Signal</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><code>Model::CREATED</code></td><td>Fired after a new model is saved to database</td></tr>
+                <tr><td><code>Model::UPDATED</code></td><td>Fired after an existing model is updated</td></tr>
+                <tr><td><code>Model::DELETED</code></td><td>Fired after a model is deleted</td></tr>
+                <tr><td><code>Model::SAVING</code></td><td>Fired before saving (create or update)</td></tr>
+                <tr><td><code>Model::DELETING</code></td><td>Fired before deleting</td></tr>
+            </tbody>
+        </table>
+        </div>
+
+        <h3>Connecting Signal Handlers</h3>
+        <pre><code>use App\Models\User;
+use Nudelsalat\ORM\Signals\Signal;
+
+// Connect to CREATED signal
+User::connectSignal(Signal::CREATED, function($model) {
+    // Send welcome email
+    email_send($model->email, 'Welcome!');
+
+    // Log the event
+    Log::info("New user created: {$model->id}");
+});
+
+// Connect to UPDATED signal
+User::connectSignal(Signal::UPDATED, function($model) {
+    // Clear cache when user is updated
+    Cache::forget("user:{$model->id}");
+});
+
+// Connect to DELETED signal
+User::connectSignal(Signal::DELETED, function($model) {
+    // Clean up related data
+    Profile::where('user_id', $model->id)->delete();
+    Session::where('user_id', $model->id)->delete();
+});
+
+// Pre-save hook (SAVING)
+User::connectSignal(Signal::SAVING, function($model) {
+    // Validate or modify before save
+    if (empty($model->slug)) {
+        $model->slug = slugify($model->name);
+    }
+});</code></pre>
+
+        <h3>Disconnecting Signals</h3>
+        <pre><code>// Disconnect a specific handler
+User::disconnectSignal(Signal::CREATED, $callback);
+
+// Disconnect all handlers for a signal
+User::disconnectSignal(Signal::CREATED);
+
+// Disconnect all handlers for all signals
+User::disconnectAllSignals();</code></pre>
+
+        <h3>Custom Signal Handlers</h3>
+        <pre><code>// Create a global event dispatcher for application-wide signals
+use Nudelsalat\ORM\Signals\Dispatcher;
+
+$dispatcher = Dispatcher::getInstance();
+
+// Register a global handler
+$dispatcher->on('user.created', function($data) {
+    ActivityLog::log("User {$data['email']} registered");
+});
+
+// Dispatch custom events anywhere
+$dispatcher->dispatch('user.created', [
+    'email' => $user->email,
+    'id' => $user->id
+]);</code></pre>
+    </section>
+
+    <!-- ══════════════════ ORM VALIDATION ══════════════════════ -->
+
+    <section id="orm-validation">
+        <h2>ORM: Validation</h2>
+        <p>Nudelsalat provides built-in validation to ensure data integrity before saving to the database.</p>
+
+        <h3>Defining Validation Rules</h3>
+        <pre><code>use Nudelsalat\ORM\Model;
+use Nudelsalat\ORM\Validation\Rules;
+
+class User extends Model {
+    protected static function validationRules(): array {
+        return [
+            'name' => [
+                Rules::required(),
+                Rules::minLength(2),
+                Rules::maxLength(100),
+            ],
+            'email' => [
+                Rules::required(),
+                Rules::email(),
+                Rules::unique(),  // checks database for duplicates
+            ],
+            'age' => [
+                Rules::integer(),
+                Rules::min(0),
+                Rules::max(150),
+            ],
+            'password' => [
+                Rules::required(),
+                Rules::minLength(8),
+            ],
+            'url' => [
+                Rules::url(),  // valid URL format
+            ],
+        ];
+    }
+
+    public static function fields(): array {
+        return [
+            'id' => new \Nudelsalat\Migrations\Fields\IntField(primaryKey: true, autoIncrement: true),
+            'name' => new \Nudelsalat\Migrations\Fields\StringField(length: 100),
+            'email' => new \Nudelsalat\Migrations\Fields\StringField(length: 255),
+            'age' => new \Nudelsalat\Migrations\Fields\IntField(),
+            'password' => new \Nudelsalat\Migrations\Fields\StringField(length: 255),
+            'url' => new \Nudelsalat\Migrations\Fields\StringField(length: 500),
+        ];
+    }
+}</code></pre>
+
+        <h3>Available Validation Rules</h3>
+        <div class="table-wrap">
+        <table>
+            <thead><tr><th>Rule</th><th>Parameters</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><code>Rules::required()</code></td><td>—</td><td>Field must not be empty</td></tr>
+                <tr><td><code>Rules::email()</code></td><td>—</td><td>Valid email format</td></tr>
+                <tr><td><code>Rules::minLength($len)</code></td><td>int</td><td>Minimum string length</td></tr>
+                <tr><td><code>Rules::maxLength($len)</code></td><td>int</td><td>Maximum string length</td></tr>
+                <tr><td><code>Rules::min($value)</code></td><td>mixed</td><td>Minimum numeric value</td></tr>
+                <tr><td><code>Rules::max($value)</code></td><td>mixed</td><td>Maximum numeric value</td></tr>
+                <tr><td><code>Rules::integer()</code></td><td>—</td><td>Must be integer</td></tr>
+                <tr><td><code>Rules::numeric()</code></td><td>—</td><td>Must be numeric</td></tr>
+                <tr><td><code>Rules::url()</code></td><td>—</td><td>Valid URL format</td></tr>
+                <tr><td><code>Rules::unique()</code></td><td>—</td><td>No duplicate in database</td></tr>
+                <tr><td><code>Rules::in($values)</code></td><td>array</td><td>Must be one of the values</td></tr>
+                <tr><td><code>Rules::regex($pattern)</code></td><td>string</td><td>Must match regex pattern</td></tr>
+                <tr><td><code>Rules::matches($field)</code></td><td>string</td><td>Must match another field</td></tr>
+            </tbody>
+        </table>
+        </div>
+
+        <h3>Running Validation</h3>
+        <pre><code>$user = new User();
+$user->name = 'J';
+$user->email = 'invalid-email';
+$user->age = -5;
+
+// Validate and check for errors
+if (!$user->validate()) {
+    // Get validation errors
+    $errors = $user->getErrors();
+
+    foreach ($errors as $field => $messages) {
+        echo "$field: " . implode(', ', $messages) . "\n";
+    }
+}
+
+// Or use save() with validation (throws on failure)
+try {
+    $user->save();
+} catch (\Nudelsalat\ORM\Exceptions\ValidationException $e) {
+    echo "Validation failed: " . $e->getMessage();
+}</code></pre>
+
+        <h3>Custom Validation Messages</h3>
+        <pre><code>protected static function validationRules(): array {
+    return [
+        'email' => [
+            Rules::required()->message('Email is required'),
+            Rules::email()->message('Please provide a valid email'),
+            Rules::unique()->message('This email is already taken'),
+        ],
+    ];
+}
+
+// Or define custom messages method
+protected static function validationMessages(): array {
+    return [
+        'email.required' => 'Please enter your email address',
+        'email.email' => 'Invalid email format',
+        'name.min_length' => 'Name must be at least 2 characters',
+    ];
+}</code></pre>
+
+        <h3>Custom Validation Rules</h3>
+        <pre><code>use Nudelsalat\ORM\Validation\Rule;
+
+class CustomRule extends Rule {
+    public function passes($value, $context = []): bool {
+        // Custom validation logic
+        return someBusinessLogic($value);
+    }
+
+    public function message(): string {
+        return 'The :field does not meet our requirements';
+    }
+}
+
+// Use custom rule
+protected static function validationRules(): array {
+    return [
+        'field' => [
+            new CustomRule(),
+        ],
+    ];
+}</code></pre>
+    </section>
+
+    <!-- ══════════════════ ORM ABSTRACT & PROXY MODELS ══════════════════════ -->
+
+    <section id="orm-abstract-proxy">
+        <h2>ORM: Abstract & Proxy Models</h2>
+        <p>Nudelsalat supports abstract base classes and proxy models for advanced inheritance patterns.</p>
+
+        <h3>Abstract Models</h3>
+        <pre><code>use Nudelsalat\ORM\Model;
+use Nudelsalat\Migrations\Fields\{IntField, StringField, DateTimeField};
+
+// Abstract base class with common fields
+abstract class BaseModel extends Model {
+    // Common fields for all models
+    public static function fields(): array {
+        return [
+            'id' => new IntField(primaryKey: true, autoIncrement: true),
+            'created_at' => new DateTimeField(autoNow: true),
+            'updated_at' => new DateTimeField(autoNow: true),
+        ];
+    }
+
+    // Common methods
+    public function timestamp(): string {
+        return $this->created_at->format('Y-m-d H:i:s');
+    }
+}
+
+// Concrete model extending abstract
+class User extends BaseModel {
+    public static function fields(): array {
+        return array_merge(parent::fields(), [
+            'name' => new StringField(length: 100),
+            'email' => new StringField(length: 255),
+        ]);
+    }
+}
+
+class Post extends BaseModel {
+    public static function fields(): array {
+        return array_merge(parent::fields(), [
+            'title' => new StringField(length: 200),
+            'content' => new StringField(), // TextField
+        ]);
+    }
+}</code></pre>
+
+        <h3>Proxy Models</h3>
+        <pre><code>use Nudelsalat\ORM\Model;
+use Nudelsalat\Migrations\Fields\StringField;
+
+// Proxy model - uses same table as base but can add custom methods
+class UserProxy extends User {
+    public static array $options = [
+        'proxy' => true,  // Tell Nudelsalat this is a proxy
+    ];
+
+    // Custom methods specific to proxy
+    public function getFullNameAttribute(): string {
+        return ucwords($this->name);
+    }
+
+    public function isAdmin(): bool {
+        return $this->role === 'admin';
+    }
+}
+
+// Usage
+$user = User::get(1);
+$proxy = UserProxy::get(1);  // Same database record
+
+// Proxy can have additional methods not in base
+echo $proxy->getFullNameAttribute();  // "John Doe"
+echo $proxy->isAdmin();  // false</code></pre>
+
+        <h3>Multi-Table Inheritance</h3>
+        <pre><code>// Base user model
+class User extends Model {
+    public static function fields(): array {
+        return [
+            'id' => new IntField(primaryKey: true, autoIncrement: true),
+            'email' => new StringField(length: 255),
+        ];
+    }
+}
+
+// Admin extends User (creates separate table)
+class Admin extends User {
+    public static array $options = [
+        'db_table' => 'admins',  // Separate table
+    ];
+
+    public static function fields(): array {
+        return array_merge(parent::fields(), [
+            'access_level' => new IntField(default: 1),
+            'department' => new StringField(length: 100),
+        ]);
+    }
+}
+
+// Staff extends User (separate table)
+class Staff extends User {
+    public static array $options = [
+        'db_table' => 'staff',
+    ];
+
+    public static function fields(): array {
+        return array_merge(parent::fields(), [
+            'department' => new StringField(length: 100),
+            'employee_id' => new StringField(length: 20),
+        ]);
+    }
+}</code></pre>
+
+        <h3>Model Options Reference</h3>
+        <div class="table-wrap">
+        <table>
+            <thead><tr><th>Option</th><th>Type</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><code>db_table</code></td><td>string</td><td>Custom table name</td></tr>
+                <tr><td><code>managed</code></td><td>bool</td><td>If false, Nudelsalat skips migration operations</td></tr>
+                <tr><td><code>proxy</code></td><td>bool</td><td>If true, skip CreateModel/DeleteModel detection</td></tr>
+                <tr><td><code>abstract</code></td><td>bool</td><td>If true, model has no database table</td></tr>
+                <tr><td><code>order_by</code></td><td>array</td><td>Default ordering e.g. ['name' => 'ASC']</td></tr>
+            </tbody>
+        </table>
+        </div>
+
+        <div class="callout">
+            <span class="callout-icon">💡</span>
+            <p><strong>Proxy models</strong> are useful for adding methods to existing tables without modifying the original model. They share the same database table but can have additional functionality.</p>
+        </div>
+    </section>
+
+    <!-- ══════════════════ COMMANDS ══════════════════════ -->
+
+    <section id="cmd-make">
+        <h2><code>./nudelsalat makemigrations</code></h2>
+        <p>The core workflow command. Inspects your model files, computes the previous project state from the migration graph, and auto-generates a new migration file with the minimum required operations.</p>
+        <pre><code># Generate migrations from model changes
+./nudelsalat makemigrations
+
+# Reverse engineer from existing database (for legacy databases)
+./nudelsalat makemigrations --from-database
+
+# For specific database (when using multi-db)
+./nudelsalat makemigrations --from-database --database=secondary</code></pre>
+
+        <h3>Options</h3>
+        <div class="table-wrap">
+        <table>
+            <thead><tr><th>Option</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><code>--from-database</code></td><td>Reverse engineer migrations from an existing database. Reads current schema and generates CreateModel operations for all tables.</td></tr>
+                <tr><td><code>--fake</code></td><td>Mark generated migrations as applied without executing SQL. Useful when tables already exist (use with --from-database).</td></tr>
+                <tr><td><code>--database</code></td><td>Target database alias (when using multiple databases).</td></tr>
+                <tr><td><code>--schema</code></td><td>Filter to specific PostgreSQL schema (default: public, use for multi-schema databases).</td></tr>
+            </tbody>
+        </table>
+        </div>
+
+        <h3>What it does internally</h3>
+        <ol>
+            <li><strong>Conflict check</strong> — reads the DAG and aborts if any app has multiple head nodes (divergent branches). Run <code>nudelsalat merge</code> first.</li>
+            <li><strong>Inspect models</strong> — reads all PHP files in configured <code>models</code> directories, discovering every concrete subclass of <code>Model</code>.</li>
+            <li><strong>Compute previous state</strong> — replays all applied migrations through <code>mutateState()</code> to get the current DB state as Nudelsalat understands it.</li>
+            <li><strong>Detect changes</strong> — runs the <code>Autodetector</code> comparing old vs new <code>ProjectState</code>.</li>
+            <li><strong>Validate</strong> — checks for reserved SQL keywords and orphaned ForeignKey operations.</li>
+            <li><strong>Write file</strong> — serializes operations via <code>MigrationWriter</code> and saves <code>m{timestamp}.php</code> to your migrations directory.</li>
+        </ol>
+
+        <div class="alert alert-info">
+            <strong>Interactive prompts:</strong> When a rename is likely, Nudelsalat asks <em>"Did you rename X to Y?"</em>. When a non-nullable field with no default is added to a non-empty table, Nudelsalat asks for a one-time default value.
+        </div>
+
+        <h3>Legacy Database Support</h3>
+        <p>Nudelsalat can reverse-engineer migrations from an existing database - perfect for onboarding legacy databases that were created without a migration system.</p>
+        <pre><code># Step 1: Generate initial migrations from existing database
+./nudelsalat makemigrations --from-database
+
+# Step 2: Apply migrations (faked, since tables already exist)
+./nudelsalat migrate --fake
+
+# OR use --fake-initial to auto-fake the first migration
+./nudelsalat migrate --fake-initial</code></pre>
+
+        <div class="callout">
+            <span class="callout-icon">💡</span>
+            <p><strong>Pro tip:</strong> Use <code>--fake</code> with <code>--from-database</code> together to generate and apply in one step:</p>
+            <pre><code>./nudelsalat makemigrations --from-database --fake</code></pre>
+        </div>
+    </section>
+
+    <section id="cmd-migrate">
+        <h2><code>./nudelsalat migrate</code></h2>
+        <p>Applies all pending migrations in topological order.</p>
+        <pre><code># Apply all pending
+./nudelsalat migrate
+
+# Apply only up to a specific migration
+./nudelsalat migrate main.m1713000000
+
+# Apply all migrations for a specific app
+./nudelsalat migrate main
+
+# Mark migrations as applied without touching the DB
+./nudelsalat migrate --fake
+
+# Treat initial migrations as fake if the table already exists
+./nudelsalat migrate --fake-initial
+
+# Roll back to a specific migration (unapply)
+./nudelsalat migrate --unapply main.m1713000000
+# or:
+./nudelsalat migrate --rollback main.m1713000000</code></pre>
+
+        <h3>Flags</h3>
+        <div class="table-wrap">
+        <table>
+            <thead><tr><th>Flag</th><th>Effect</th></tr></thead>
+            <tbody>
+                <tr><td><code>--fake</code></td><td>Records the migration as applied in <code>nudelsalat_migrations</code> without executing any SQL. Useful for syncing legacy databases.</td></tr>
+                <tr><td><code>--fake-initial</code></td><td>Like <code>--fake</code> but only for the very first migration of each app, and only if the target table already exists on disk.</td></tr>
+                <tr><td><code>--unapply</code>, <code>--rollback</code></td><td>Runs migrations <em>backwards</em>: executes <code>databaseBackwards()</code> on each operation in reverse order.</td></tr>
+            </tbody>
+        </table>
+        </div>
+    </section>
+
+    <section id="cmd-show">
+        <h2><code>./nudelsalat show</code></h2>
+        <p>Prints the full migration status, grouped by app. Applied migrations show <code>[X]</code>, pending show <code>[ ]</code>. Squash replacements are annotated.</p>
+        <pre><code>./nudelsalat show
+
+# Output example:
+main:
+ [X] m1713000001 (replaces: m1700000001, m1700000002)
+ [X] m1713000002
+ [ ] m1713000003</code></pre>
+        <p>Also surfaces <strong>conflicts</strong> inline: if an app has multiple heads, the conflict is reported directly below the app name prefixed with <code>!</code>.</p>
+    </section>
+
+    <section id="cmd-check">
+        <h2><code>./nudelsalat check</code></h2>
+        <p>Detects if there are any model changes not yet captured in a migration. Exits with code <code>1</code> if changes exist — ideal for CI/CD gating.</p>
+        <pre><code># Standard check
+./nudelsalat check
+
+# Deep relational audit (cross-app FK validation + graph consistency)
+./nudelsalat check --deploy</code></pre>
+    </section>
+
+    <section id="cmd-sqlmigrate">
+        <h2><code>./nudelsalat sqlmigrate</code></h2>
+        <p>Prints the raw SQL that a specific migration would execute, without touching the database. Uses the SchemaEditor in <strong>dry-run mode</strong> (with a SQL logger callback).</p>
+        <pre><code>./nudelsalat sqlmigrate main.m1713000001</code></pre>
+    </section>
+
+    <section id="cmd-introspect">
+        <h2><code>./nudelsalat introspect</code></h2>
+        <p>Reverse-engineers an existing database and generates PHP Model stubs for every table it finds. Reads columns, indexes, and foreign keys using the driver-specific <code>Introspector</code>.</p>
+        <pre><code>./nudelsalat introspect</code></pre>
+
+        <div class="alert alert-info">
+            <strong>Real-world verified:</strong> Successfully introspected a 147-table production schema, detecting columns, indexes, and FK constraints across all tables.
+        </div>
+    </section>
+
+    <section id="cmd-merge">
+        <h2><code>./nudelsalat merge</code></h2>
+        <p>Resolves divergent migration branches. If two developers both created migrations from the same parent (resulting in two heads), <code>merge</code> creates a new empty migration that depends on both heads — restoring a single linear history.</p>
+        <pre><code>./nudelsalat merge main</code></pre>
+    </section>
+
+    <section id="cmd-squash">
+        <h2><code>./nudelsalat squash</code></h2>
+        <p>Collapses a range of migrations into a single optimized migration file, using the <strong>Optimizer Engine</strong> for logical reduction. The squash migration carries a <code>$replaces</code> list so Nudelsalat can handle environments where the originals were already applied.</p>
+        <pre><code>./nudelsalat squash main</code></pre>
+    </section>
+
+    <section id="cmd-optimize">
+        <h2><code>./nudelsalat optimize</code></h2>
+        <p>Optimizes an existing migration file by applying logical reduction rules (like merging CreateModel+AddField into a single CreateModel). The optimized migration replaces the original while preserving the same end result.</p>
+        <pre><code># Optimize a specific migration
+./nudelsalat optimize main.m1713000001
+
+# Optimize all migrations in an app
+./nudelsalat optimize main</code></pre>
+        
+        <h3>What it does</h3>
+        <p>The Optimizer applies state-based multi-pass reduction rules:</p>
+        <ul>
+<li><code>CreateModel</code> + <code>AddField</code> = <code>CreateModel</code> with field merged</li>
+            <li><code>CreateModel</code> + <code>DeleteModel</code> = eliminated (no net change)</li>
+            <li><code>AddField</code> + <code>RemoveField</code> = eliminated</li>
+            <li>And more...</li>
+        </ul>
+    </section>
+
+    <section id="cmd-dumpdata">
+        <h2><code>./nudelsalat dumpdata</code></h2>
+        <p>Export database data to JSON, XML, or YAML fixtures. Supports compression.</p>
+        <pre><code># Export all models
+./nudelsalat dumpdata
+
+# Export specific model
+./nudelsalat dumpdata core.User
+
+# Export to file (also supports .json.gz, .json.bz2, .json.lzma)
+./nudelsalat dumpdata core.User --output=users.json
+./nudelsalat dumpdata core.User --output=users.json.gz
+
+# Export specific IDs
+./nudelsalat dumpdata core.User --pks=1,2,3
+
+# Exclude models
+./nudelsalat dumpdata --exclude=core.LogEntry,core.Session
+
+# Natural keys (for FK references)
+./nudelsalat dumpdata --natural-primary --natural-foreign
+
+# Compressed output
+./nudelsalat dumpdata -o data.json.gz</code></pre>
+
+        <h3>Options</h3>
+        <div class="table-wrap">
+        <table>
+            <thead><tr><th>Option</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><code>--output</code></td><td>Output file (supports .gz, .bz2, .lzma compression)</td></tr>
+                <tr><td><code>--format</code></td><td>json, xml, or python (default: json)</td></tr>
+                <tr><td><code>--exclude</code></td><td>Comma-separated models to exclude</td></tr>
+                <tr><td><code>--pks</code></td><td>Export only specific primary keys (comma-separated)</td></tr>
+                <tr><td><code>--natural-primary</code></td><td>Use natural keys for primary keys</td></tr>
+                <tr><td><code>--natural-foreign</code></td><td>Use natural keys for foreign keys</td></tr>
+                <tr><td><code>--no-indent</code></td><td>Disable JSON indentation</td></tr>
+                <tr><td><code>--database</code></td><td>Database alias (for multi-db)</td></tr>
+                <tr><td><code>-o</code></td><td>Short for --output</td></tr>
+            </tbody>
+        </table>
+        </div>
+    </section>
+
+    <section id="cmd-loaddata">
+        <h2><code>./nudelsalat loaddata</code></h2>
+        <p>Import data from fixture files. Supports JSON, YAML, XML, and compressed formats.</p>
+        <pre><code># Load from specific file
+./nudelsalat loaddata fixtures/users.json
+
+# Load from compressed fixture
+./nudelsalat loaddata data.json.gz
+
+# Load multiple files
+./nudelsalat loaddata users.json posts.json comments.json
+
+# Load from YAML
+./nudelsalat loaddata data.yaml
+
+# Load from XML
+./nudelsalat loaddata data.xml
+
+# Load from stdin (pipe from dumpdata)
+./nudelsalat dumpdata core.User | ./nudelsalat loaddata -
+./nudelsalat loaddata --format=json -
+
+# Exclude specific models
+./nudelsalat loaddata all.json --exclude=core.Session
+
+# Load from specific app only
+./nudelsalat loaddata data.json --app=core
+
+# Ignore fields that no longer exist in model
+./nudelsalat loaddata data.json --ignorenonexistent</code></pre>
+
+        <h3>Options</h3>
+        <div class="table-wrap">
+        <table>
+            <thead><tr><th>Option</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><code>--exclude</code></td><td>Comma-separated models to exclude</td></tr>
+                <tr><td><code>--app</code></td><td>Load fixtures from specific app only</td></tr>
+                <tr><td><code>--ignorenonexistent</code>, <code>-i</code></td><td>Ignore fields that no longer exist in model</td></tr>
+                <tr><td><code>--format</code></td><td>Specify format when reading from stdin (json, xml, yaml)</td></tr>
+                <tr><td><code>--database</code></td><td>Database alias (for multi-db)</td></tr>
+                <tr><td><code>--quiet</code></td><td>Suppress output</td></tr>
+            </tbody>
+        </table>
+        </div>
+
+        <h3>Auto-discovery</h3>
+        <p>If no file specified, loads from configured <code>fixtures_dir</code> or <code>fixtures/</code> directory. Supports all formats including compressed.</p>
+    </section>
+
+    <section id="cmd-seed">
+        <h2><code>./nudelsalat seed</code></h2>
+        <p>Run database seeders to populate test data.</p>
+        <pre><code># Run all seeders
+./nudelsalat seed
+
+# Run specific seeder
+./nudelsalat seed UserSeeder
+
+# Truncate tables before seeding (fresh data)
+./nudelsalat seed --fresh</code></pre>
+
+        <h3>Creating Seeders</h3>
+        <p>Create seeders in <code>database/seeders/</code> directory:</p>
+        <pre><code>&lt;?php
+namespace Database\Seeders;
+
+use Nudelsalat\Database\Seeder;
+
+class UserSeeder extends Seeder
+{
+    protected function seed(): void
+    {
+        $this->batch('users', [
+            ['name' => 'John Doe', 'email' => 'john@example.com'],
+            ['name' => 'Jane Smith', 'email' => 'jane@example.com'],
+        ]);
+    }
+}</code></pre>
+
+        <h3>Seeder Methods</h3>
+        <div class="table-wrap">
+        <table>
+            <thead><tr><th>Method</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><code>$this->batch($table, $records)</code></td><td>Insert multiple records</td></tr>
+                <tr><td><code>$this->create($table, fn($r) => $record)</code></td><td>Insert single record via callback</td></tr>
+                <tr><td><code>$this->has($table, $where)</code></td><td>Check if record exists</td></tr>
+                <tr><td><code>$this->count($table)</code></td><td>Get record count</td></tr>
+                <tr><td><code>$this->deleteAll($table)</code></td><td>Truncate table</td></tr>
+            </tbody>
+        </table>
+        </div>
+    </section>
+
+    <section id="cmd-scaffold">
+        <h2><code>./nudelsalat scaffold</code></h2>
+        <p>Generate complete database migrations from an existing PostgreSQL database. This is the ultimate reverse-engineering tool that captures all database objects.</p>
+        <pre><code># Scaffold entire database to stdout
+./nudelsalat scaffold
+
+# Scaffold specific schema to directory
+./nudelsalat scaffold --schema=analytics --output=database/migrations
+
+# Scaffold with custom database
+./nudelsalat scaffold --database=production --output=./migrations
+
+# Dry run preview
+./nudelsalat scaffold --dry-run</code></pre>
+
+        <h3>What it generates</h3>
+        <div class="table-wrap">
+        <table>
+            <thead><tr><th>Object</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td>Schemas</td><td>CREATE SCHEMA migrations for each non-system schema</td></tr>
+                <tr><td>Tables</td><td>CREATE TABLE with columns, types, defaults, primary keys with preserved names</td></tr>
+                <tr><td>Foreign Keys</td><td>ADD CONSTRAINT FOREIGN KEY with original constraint names</td></tr>
+                <tr><td>Functions</td><td>CREATE FUNCTION using pg_get_functiondef</td></tr>
+                <tr><td>Views</td><td>CREATE OR REPLACE VIEW with dependency ordering</td></tr>
+                <tr><td>Materialized Views</td><td>CREATE MATERIALIZED VIEW</td></tr>
+                <tr><td>Triggers</td><td>CREATE TRIGGER with full definition</td></tr>
+                <tr><td>Indexes & Constraints</td><td>Non-constraint indexes, UNIQUE and CHECK constraints</td></tr>
+            </tbody>
+        </table>
+        </div>
+
+        <h3>Options</h3>
+        <div class="table-wrap">
+        <table>
+            <thead><tr><th>Option</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><code>--schema</code></td><td>Target specific PostgreSQL schema (default: all non-system schemas)</td></tr>
+                <tr><td><code>--output</code></td><td>Save migrations to directory instead of stdout</td></tr>
+                <tr><td><code>--database</code></td><td>Target specific database alias</td></tr>
+                <tr><td><code>--dry-run</code></td><td>Preview migrations without generating files</td></tr>
+            </tbody>
+        </table>
+        </div>
+    </section>
+
+    <!-- ══════════════════ OPERATION API ══════════════════ -->
+
+    <section id="ops-schema">
+        <h2>Schema Operations (26 Operations)</h2>
+        <p>All operations implement <code>stateForwards()</code>, <code>databaseForwards()</code>, <code>databaseBackwards()</code>, <code>deconstruct()</code>, <code>reversible()</code>, and <code>elidable()</code>. Nudelsalat comes with 26 built-in operations.</p>
+
+        <h3>Table Lifecycle</h3>
+        <div class="table-wrap">
+        <table>
+            <thead><tr><th>Operation</th><th>SQL Action</th><th>State Action</th></tr></thead>
+            <tbody>
+                <tr><td><code>CreateModel($name, $columns, $options)</code></td><td><code>CREATE TABLE</code></td><td>Adds the table to <code>ProjectState</code></td></tr>
+                <tr><td><code>DeleteModel($name)</code></td><td><code>DROP TABLE</code></td><td>Removes the table from <code>ProjectState</code></td></tr>
+                <tr><td><code>RenameModel($old, $new)</code></td><td><code>RENAME TABLE</code></td><td>Renames the entry in <code>ProjectState</code></td></tr>
+            </tbody>
+        </table>
+        </div>
+
+        <h3>Column Lifecycle</h3>
+        <div class="table-wrap">
+        <table>
+            <thead><tr><th>Operation</th><th>SQL Action</th></tr></thead>
+            <tbody>
+                <tr><td><code>AddField($model, $name, $column)</code></td><td><code>ALTER TABLE … ADD COLUMN</code></td></tr>
+                <tr><td><code>RemoveField($model, $name)</code></td><td><code>ALTER TABLE … DROP COLUMN</code></td></tr>
+                <tr><td><code>AlterField($model, $name, $new, $old)</code></td><td><code>ALTER TABLE … MODIFY/ALTER COLUMN</code></td></tr>
+                <tr><td><code>RenameField($model, $old, $new)</code></td><td><code>ALTER TABLE … RENAME COLUMN</code></td></tr>
+            </tbody>
+        </table>
+        </div>
+
+        <h3>Indexes, Constraints &amp; Foreign Keys</h3>
+        <div class="table-wrap">
+        <table>
+            <thead><tr><th>Add</th><th>Remove</th><th>Notes</th></tr></thead>
+            <tbody>
+                <tr><td><code>AddIndex</code></td><td><code>RemoveIndex</code></td><td>Supports composite multi-column indexes.</td></tr>
+                <tr><td><code>AddConstraint</code></td><td><code>RemoveConstraint</code></td><td>UniqueConstraint, CheckConstraint (PgSQL/MySQL 8+).</td></tr>
+                <tr><td><code>AddForeignKey</code></td><td><code>RemoveForeignKey</code></td><td>Named FK constraints with configurable <code>ON DELETE</code> actions.</td></tr>
+            </tbody>
+        </table>
+        </div>
+    </section>
+
+    <section id="ops-logic">
+        <h2>Logic Operations & Model Options</h2>
+        <p>Nudelsalat includes 9 additional model-option operations for handling metadata changes.</p>
+        <div class="table-wrap">
+        <table>
+            <thead><tr><th>Operation</th><th>Purpose</th></tr></thead>
+            <tbody>
+                <tr>
+                    <td><code>RunSQL($forward, $backward)</code></td>
+                    <td>Execute raw SQL strings. Accepts separate SQL for forward and backward directions.</td>
+                </tr>
+                <tr>
+                    <td><code>RunPHP($forward, $backward)</code></td>
+                    <td>Execute PHP callables. Receives the <code>StateRegistry</code> for safe data access via <code>HistoricalModel</code>.</td>
+                </tr>
+                <tr>
+                    <td><code>SeparateDatabaseAndState($databaseOps, $stateOps)</code></td>
+                    <td>Runs <code>$databaseOps</code> against the DB while updating the Nudelsalat state using <code>$stateOps</code>. Enables complex refactors where schema and state deliberately diverge.</td>
+                </tr>
+                <tr>
+                    <td><code>AlterModelTable($name, $table)</code></td>
+                    <td>Rename the model's database table.</td>
+                </tr>
+                <tr>
+                    <td><code>AlterModelTableComment($name, $comment)</code></td>
+                    <td>Set or change the table comment.</td>
+                </tr>
+                <tr>
+                    <td><code>AlterModelOptions($name, $options)</code></td>
+                    <td>Change Meta options (verbose_name, permissions, ordering, etc.).</td>
+                </tr>
+                <tr>
+                    <td><code>AlterModelManagers($name, $managers)</code></td>
+                    <td>Change custom model managers.</td>
+                </tr>
+                <tr>
+                    <td><code>AlterUniqueTogether($name, $value)</code></td>
+                    <td>Change unique_together constraints.</td>
+                </tr>
+                <tr>
+                    <td><code>AlterIndexTogether($name, $value)</code></td>
+                    <td>Change index_together indexes.</td>
+                </tr>
+                <tr>
+                    <td><code>AlterOrderWithRespectTo($name, $to)</code></td>
+                    <td>Change order_with_respect_to option.</td>
+                </tr>
+                <tr>
+                    <td><code>RenameIndex($name, $newName)</code></td>
+                    <td>Rename an existing index.</td>
+                </tr>
+                <tr>
+                    <td><code>AlterConstraint($name, $constraint)</code></td>
+                    <td>Modify an existing constraint.</td>
+                </tr>
+            </tbody>
+        </table>
+        </div>
+    </section>
+
+    <section id="ops-writing">
+        <h2>Writing a Migration File</h2>
+        <p>Migration files return an anonymous class that extends <code>Nudelsalat\Migrations\Migration</code>. The <code>MigrationWriter</code> generates these automatically; you can also write them by hand.</p>
+        <pre><code>&lt;?php
+
+use Nudelsalat\Migrations\Migration;
+use Nudelsalat\Migrations\Operations\CreateModel;
+use Nudelsalat\Migrations\Operations\AddForeignKey;
+use Nudelsalat\Schema\Column;
+
+return new class('m1713000001') extends Migration {
+    public function __construct(string $name)
+    {
+        parent::__construct($name);
+
+        $this->dependencies = ['m1713000000'];  // relative names only
+        $this->replaces     = [];               // squash: lists replaced migrations
+        $this->atomic       = true;             // wrap in transaction (default)
+
+        $this->operations = [
+            new CreateModel('post', [
+                new Column('id',      'int',          false, null, true, true),
+                new Column('title',   'varchar(200)', false),
+                new Column('user_id', 'int',          false),
+            ]),
+            new AddForeignKey(
+                'post', 'fk_post_user_id', 'user_id', 'user', 'id', 'CASCADE'
+            ),
+        ];
+    }
+};</code></pre>
+
+        <div class="callout">
+            <span class="callout-icon">🔑</span>
+            <p><strong>Key property: <code>$atomic</code></strong> — set to <code>false</code> for migrations that contain statements incompatible with transactions (e.g. <code>CREATE INDEX CONCURRENTLY</code> in PostgreSQL).</p>
+        </div>
+    </section>
+
+    <!-- ══════════════════ INTERNALS ══════════════════════ -->
+
+    <section id="autodetector">
+        <h2>Autodetector</h2>
+        <p>The <code>Autodetector</code> class takes two <code>ProjectState</code> objects (old and new) and produces a minimal ordered list of <code>Operation</code> instances. It runs the result through <code>Optimizer</code> before returning.</p>
+
+        <h3>Detection Order</h3>
+        <ol>
+            <li><strong>Model Renames</strong> — compares added vs removed tables. If column counts match, asks via <code>Questioner::askRenameModel()</code>.</li>
+            <li><strong>Created Models</strong> — generates <code>CreateModel</code> + index/constraint/FK operations in one pass. Handles M2M junction tables automatically.</li>
+            <li><strong>Deleted Models</strong> — emits <code>DeleteModel</code>. Skips <code>proxy</code> models.</li>
+            <li><strong>Field Changes (per-table):</strong>
+                <ul>
+                    <li>Field renames: checked using <code>isColumnRenameCandidate()</code> — must have same type, nullability, default, and key attributes.</li>
+                    <li>Field alterations: deep equality check on type, nullable, default, primaryKey, autoIncrement, and extra options.</li>
+                    <li>FK, Index, Constraint changes: removed first (pre-field), added last (post-field) to avoid constraint conflicts.</li>
+                    <li>New non-nullable fields: if no default, <code>Questioner::askDefault()</code> is called interactively.</li>
+                </ul>
+            </li>
+        </ol>
+
+        <div class="alert alert-warning">
+            <strong>Proxy models are skipped</strong> at all detection phases. Set <code>$options['proxy'] = true</code> on models that map to views or externally managed tables.
+        </div>
+    </section>
+
+    <section id="graph">
+        <h2>Migration Graph (DAG)</h2>
+        <p>The <code>Graph</code> class is a Directed Acyclic Graph of all loaded migrations. It powers dependency resolution, conflict detection, and plan generation.</p>
+
+        <div class="pipeline">
+            <div class="pipe-step"><div class="ps-icon">📂</div><div class="ps-label">Disk Load</div></div>
+            <div class="pipe-arrow">→</div>
+            <div class="pipe-step"><div class="ps-icon">📊</div><div class="ps-label">Build Graph</div></div>
+            <div class="pipe-arrow">→</div>
+            <div class="pipe-step"><div class="ps-icon">✅</div><div class="ps-label">validate()</div></div>
+            <div class="pipe-arrow">→</div>
+            <div class="pipe-step"><div class="ps-icon">📋</div><div class="ps-label">Plan</div></div>
+        </div>
+
+        <h3>Key Methods</h3>
+        <div class="table-wrap">
+        <table>
+            <thead><tr><th>Method</th><th>Purpose</th></tr></thead>
+            <tbody>
+                <tr><td><code>forwards_plan($targets)</code></td><td>DFS through dependencies — returns migrations in the order they must be applied.</td></tr>
+                <tr><td><code>backwards_plan($targets)</code></td><td>DFS through children — returns migrations in reverse application order.</td></tr>
+                <tr><td><code>validate()</code></td><td>Checks for missing nodes and calls <code>ensureAcyclic()</code>. Throws <code>DependencyError</code> or <code>CircularDependencyError</code>.</td></tr>
+                <tr><td><code>find_heads($appName)</code></td><td>Returns terminal nodes for an app. More than one head = migration conflict.</td></tr>
+                <tr><td><code>leaf_nodes()</code></td><td>All nodes with no children (across all apps).</td></tr>
+                <tr><td><code>root_nodes($appName?)</code></td><td>All nodes with no parents (optionally filtered by app).</td></tr>
+            </tbody>
+        </table>
+        </div>
+
+        <h3>Squash &amp; Replacement Tracking</h3>
+        <p>The <code>Loader</code> builds two maps: <code>replacementMap</code> (squash → originals) and <code>replacedByMap</code> (original → squash). This lets Nudelsalat route any mixed-history environment — where some original migrations were applied before switching to the squash — to the correct active node set.</p>
+    </section>
+
+    <section id="executor">
+        <h2>Executor Pipeline</h2>
+        <p>The <code>Executor</code> orchestrates the full migration lifecycle: history verification → planning → application → recording. It coordinates the <code>Loader</code>, <code>Recorder</code>, <code>SchemaEditor</code>, and an <code>EventDispatcher</code>.</p>
+
+        <div class="pipeline">
+            <div class="pipe-step"><div class="ps-icon">🔒</div><div class="ps-label">Integrity Check</div></div>
+            <div class="pipe-arrow">→</div>
+            <div class="pipe-step"><div class="ps-icon">📋</div><div class="ps-label">Build Plan</div></div>
+            <div class="pipe-arrow">→</div>
+            <div class="pipe-step"><div class="ps-icon">🔄</div><div class="ps-label">Apply Ops</div></div>
+            <div class="pipe-arrow">→</div>
+            <div class="pipe-step"><div class="ps-icon">💾</div><div class="ps-label">Record</div></div>
+            <div class="pipe-arrow">→</div>
+            <div class="pipe-step"><div class="ps-icon">🧹</div><div class="ps-label">Prune Stale</div></div>
+        </div>
+
+        <h3>Events</h3>
+        <p>The executor fires <code>MigrationEvent::PRE_MIGRATE</code> and <code>MigrationEvent::POST_MIGRATE</code> via the <code>EventDispatcher</code>, passing the migration and current driver name. Register listeners in <code>Bootstrap</code> to hook into the pipeline.</p>
+
+        <h3>Progress Callback</h3>
+        <pre><code>$executor->setProgressCallback(function(string $event, Migration $migration) {
+    if ($event === 'apply_start') {
+        echo "  Applying {$migration->name}... ";
+    } elseif ($event === 'apply_success') {
+        echo "\033[32mOK\033[0m\n";
+    }
+});</code></pre>
+    </section>
+
+    <section id="state-registry">
+        <h2>State Registry &amp; Historical Models</h2>
+        <p>The <code>StateRegistry</code> solves the "Historical Ghost" problem: a data migration referencing a model that was later deleted would crash without it. The registry provides a <strong>frozen snapshot</strong> of every model exactly as it existed at migration time.</p>
+
+        <h3>Using HistoricalModel in a RunPHP operation</h3>
+        <pre><code>use Nudelsalat\Migrations\Operations\RunPHP;
+
+new RunPHP(function(StateRegistry $registry) {
+    $users = $registry->getModel('user');
+
+    // Read all rows
+    foreach ($users->all() as $row) {
+        // insert into a new table
+        $profiles = $registry->getModel('profile');
+        $profiles->insert([
+            'user_id'    => $row['id'],
+            'display_name' => $row['first'] . ' ' . $row['last'],
+        ]);
+    }
+})</code></pre>
+
+        <h3>HistoricalModel API</h3>
+        <div class="table-wrap">
+        <table>
+            <thead><tr><th>Method</th><th>Signature</th><th>Notes</th></tr></thead>
+            <tbody>
+                <tr><td><code>all()</code></td><td><code>array</code></td><td>Returns all rows as associative arrays.</td></tr>
+                <tr><td><code>first(array $where)</code></td><td><code>?array</code></td><td>Get first record matching conditions.</td></tr>
+                <tr><td><code>find(mixed $value, string $column = 'id')</code></td><td><code>?array</code></td><td>Find by specific column value.</td></tr>
+                <tr><td><code>where(array $where, ?int $limit)</code></td><td><code>array</code></td><td>Get records matching conditions.</td></tr>
+                <tr><td><code>insert(array $data)</code></td><td><code>void</code></td><td>Prepared statement insert.</td></tr>
+                <tr><td><code>update(array $data, array $where)</code></td><td><code>void</code></td><td>Prepared statement update.</td></tr>
+                <tr><td><code>delete(array $where)</code></td><td><code>void</code></td><td>Delete records matching conditions.</td></tr>
+                <tr><td><code>count(array $where = [])</code></td><td><code>int</code></td><td>Count records.</td></tr>
+                <tr><td><code>exists(array $where = [])</code></td><td><code>bool</code></td><td>Check if any records exist.</td></tr>
+                <tr><td><code>value(string $column, array $where = [])</code></td><td><code>mixed</code></td><td>Get single column value.</td></tr>
+                <tr><td><code>values(string $column)</code></td><td><code>array</code></td><td>Get all values for a column.</td></tr>
+                <tr><td><code>orderBy(string $column, string $direction = 'ASC', ?int $limit)</code></td><td><code>array</code></td><td>Get records ordered by column.</td></tr>
+                <tr><td><code>raw(string $sql, array $params = [])</code></td><td><code>array</code></td><td>Execute raw SQL.</td></tr>
+                <tr><td><code>getFields()</code></td><td><code>array</code></td><td>Get all columns.</td></tr>
+                <tr><td><code>getField(string $name)</code></td><td><code>?Column</code></td><td>Get specific field.</td></tr>
+                <tr><td><code>getForeignKeys()</code></td><td><code>array</code></td><td>Get all FK constraints.</td></tr>
+                <tr><td><code>getIndexes()</code></td><td><code>array</code></td><td>Get all indexes.</td></tr>
+                <tr><td><code>getConstraints()</code></td><td><code>array</code></td><td>Get all constraints.</td></tr>
+                <tr><td><code>related(string $column, array $row)</code></td><td><code>?array</code></td><td>Get related object via FK.</td></tr>
+                <tr><td><code>getRelatedObjects(array $row)</code></td><td><code>array</code></td><td>Get all related objects.</td></tr>
+            </tbody>
+        </table>
+        </div>
+        <p>Identifiers are quoted correctly per driver: backticks for MySQL, double-quotes for PostgreSQL/SQLite.</p>
+    </section>
+
+    <section id="integrity">
+        <h2>Integrity Shield</h2>
+        <p>Every applied migration file has its SHA256 hash stored in the <code>nudelsalat_migrations</code> table alongside its name and timestamp. On every subsequent run, Nudelsalat re-hashes the file on disk and compares.</p>
+
+        <pre><code>-- nudelsalat_migrations table schema
+CREATE TABLE nudelsalat_migrations (
+    id          INTEGER PRIMARY KEY AUTO_INCREMENT,
+    migration   VARCHAR(255) NOT NULL UNIQUE,
+    applied_at  DATETIME NOT NULL,
+    checksum    VARCHAR(64) NOT NULL   -- SHA256 hex
+);</code></pre>
+
+        <div class="alert alert-danger">
+            <strong>IntegrityError:</strong> If checksums don't match, Nudelsalat throws <code>Nudelsalat\Migrations\Exceptions\IntegrityError</code> and halts immediately. Never edit an applied migration file without first running <code>./nudelsalat migrate --fake</code> to reset the record.
+        </div>
+    </section>
+
+    <section id="transactions">
+        <h2>Transaction Control</h2>
+        <p>Nudelsalat wraps each migration in a transaction by default. The <code>$atomic</code> property on the <code>Migration</code> class controls this.</p>
+
+        <div class="table-wrap">
+        <table>
+            <thead><tr><th>Scenario</th><th>Setting</th><th>Behaviour</th></tr></thead>
+            <tbody>
+                <tr><td>Normal DDL (default)</td><td><code>$atomic = true</code></td><td>Full transaction: rollback on failure. Safe for PgSQL transactional DDL.</td></tr>
+                <tr><td>Concurrent index creation</td><td><code>$atomic = false</code></td><td>No transaction wrapper. Required for <code>CREATE INDEX CONCURRENTLY</code>.</td></tr>
+                <tr><td>MySQL DDL</td><td>Any</td><td>MySQL auto-commits DDL; Nudelsalat's transaction protects data operations inside the migration but not schema changes.</td></tr>
+            </tbody>
+        </table>
+        </div>
+    </section>
+
+    <section id="squash-optimizer">
+        <h2>Squash Optimizer</h2>
+        <p>The <code>Optimizer</code> (called internally by <code>Squasher</code> and also after every <code>Autodetector</code> run) applies logical reduction rules to shrink the operation list.</p>
+
+        <h3>Reduction Rules</h3>
+        <div class="table-wrap">
+        <table>
+            <thead><tr><th>Before</th><th>After</th></tr></thead>
+            <tbody>
+                <tr><td><code>CreateModel</code> + <code>DeleteModel</code></td><td>Eliminated entirely (no net change).</td></tr>
+                <tr><td><code>AddField</code> + <code>RemoveField</code></td><td>Eliminated entirely.</td></tr>
+                <tr><td><code>CreateModel</code> + <code>AddField</code></td><td>Folded: <code>AddField</code> merged into <code>CreateModel.fields</code>.</td></tr>
+            </tbody>
+        </table>
+        </div>
+
+        <h3>The Squash Lifecycle</h3>
+        <pre><code># 1. Generate the squash migration
+./nudelsalat squash main
+
+# 2. Commit it. Old migrations STAY until all environments
+#    have been updated to the squash.
+
+# 3. Once all environments are on the squash, delete the originals.</code></pre>
+
+        <p>The squash migration's <code>$replaces</code> list + the Loader's replacement maps ensure Nudelsalat handles every possible history state correctly — whether an environment has the originals applied, the squash applied, or a mix.</p>
+    </section>
+
+    <section id="validator">
+        <h2>Validator</h2>
+        <p>The <code>Validator</code> runs two checks before writing a migration file:</p>
+        <div class="table-wrap">
+        <table>
+            <thead><tr><th>Check</th><th>Method</th><th>What it catches</th></tr></thead>
+            <tbody>
+                <tr><td>State Validation</td><td><code>validateState()</code></td><td>Table and column names that match SQL reserved keywords: <code>order</code>, <code>group</code>, <code>user</code>, <code>select</code>, <code>table</code>, <code>index</code>, <code>primary</code>, <code>key</code>.</td></tr>
+                <tr><td>Operation Validation</td><td><code>validateOperations()</code></td><td>Orphaned <code>AddForeignKey</code> operations — where the target table doesn't exist in the destination state.</td></tr>
+            </tbody>
+        </table>
+        </div>
+    </section>
+
+    <!-- ══════════════════ BACKENDS ══════════════════════ -->
+
+    <section id="schema-editor">
+        <h2>SchemaEditor Abstract API</h2>
+        <p>Every database driver implements the abstract <code>SchemaEditor</code>. No database-specific code ever appears in the migration engine — only in the driver editors.</p>
+
+        <h3>Abstract Methods (must implement)</h3>
+        <pre><code>createTable(Table $table): void
+deleteTable(string $name): void
+renameTable(string $oldName, string $newName): void
+addColumn(string $tableName, Column $column): void
+removeColumn(string $tableName, string $columnName): void
+renameColumn(string $tableName, string $oldName, Column $newColumn): void
+alterColumn(string $tableName, Column $column): void
+addIndex(string $tableName, Index $index): void
+removeIndex(string $tableName, string $indexName): void
+addConstraint(string $tableName, Constraint $constraint): void
+removeConstraint(string $tableName, string $constraintName): void
+addForeignKey(string $tableName, string $columnName, string $toTable, string $toColumn, string $onDelete): void
+removeForeignKey(string $tableName, string $constraintName): void</code></pre>
+
+        <h3>Shared Features</h3>
+        <div class="table-wrap">
+        <table>
+            <thead><tr><th>Feature</th><th>Method</th><th>Purpose</th></tr></thead>
+            <tbody>
+                <tr><td>Dry Run</td><td><code>enableDryRun(?callable $logger)</code></td><td>Prevents any SQL from executing; passes SQL to logger callback instead. Used by <code>sqlmigrate</code>.</td></tr>
+                <tr><td>Deferred SQL</td><td><code>deferredSql[]</code> + <code>flushDeferredSql()</code></td><td>Queues SQL to run after the main operation block. Used for operations that must happen after a transaction commits.</td></tr>
+                <tr><td>Raw SQL</td><td><code>runRawSql(string $sql)</code></td><td>Executes arbitrary SQL — used by <code>RunSQL</code> operation.</td></tr>
+            </tbody>
+        </table>
+        </div>
+    </section>
+
+    <section id="postgresql">
+        <h2>PostgreSQL <span class="tag tag-pg">pgsql</span></h2>
+        <ul>
+            <li><strong>Transactional DDL:</strong> All schema changes can be rolled back inside a transaction. Nudelsalat's <code>$atomic = true</code> default fully protects your schema.</li>
+            <li><strong>JSONB:</strong> <code>JSONField</code> maps to <code>JSONB</code> — binary JSON with indexing and operator support.</li>
+            <li><strong>Check Constraints:</strong> Full support via <code>AddConstraint</code>/<code>RemoveConstraint</code>.</li>
+            <li><strong>Identifier quoting:</strong> Double-quotes (<code>"name"</code>) used throughout.</li>
+            <li><strong>Sequences:</strong> <code>SERIAL</code> / <code>BIGSERIAL</code> used for auto-increment columns.</li>
+        </ul>
+    </section>
+
+    <section id="mysql">
+        <h2>MySQL / MariaDB <span class="tag tag-mysql">mysql</span></h2>
+        <ul>
+            <li><strong>Non-transactional DDL:</strong> MySQL auto-commits DDL. Data operations inside a <code>RunPHP</code> in the same migration are still protected.</li>
+            <li><strong>JSON type:</strong> <code>JSONField</code> maps to the native <code>JSON</code> column type.</li>
+            <li><strong>InnoDB FKs:</strong> Foreign keys require InnoDB. Named constraints are used throughout for reliable <code>removeForeignKey</code>.</li>
+            <li><strong>Identifier quoting:</strong> Backtick quoting (<code>`name`</code>).</li>
+        </ul>
+    </section>
+
+    <section id="sqlite">
+        <h2>SQLite <span class="tag tag-sqlite">sqlite</span></h2>
+        <ul>
+            <li><strong>Limited ALTER TABLE:</strong> SQLite does not support dropping columns or altering column types natively. Nudelsalat handles this via <strong>Transparent Table Rebuilds</strong>: create new table → copy data → drop old → rename new.</li>
+            <li><strong>JSON as TEXT:</strong> <code>JSONField</code> maps to <code>TEXT</code>. The <code>toPhp()</code>/<code>toDatabase()</code> methods on <code>JSONField</code> handle encode/decode.</li>
+            <li><strong>Identifier quoting:</strong> Double-quotes (same as PostgreSQL).</li>
+            <li><strong>Use case:</strong> Ideal for unit tests and local development with zero infrastructure.</li>
+        </ul>
+    </section>
+
+    <!-- ══════════════════ DEPLOYMENT & TESTING ══════════════════════ -->
+
+    <section id="deployment">
+        <h2>Deployment Strategy</h2>
+        <p>Nudelsalat is CI/CD-native. Use the following pattern in your pipeline:</p>
+        <pre><code># 1. Verify no unmade changes exist (fails the build if your model changes aren't committed)
+./nudelsalat check
+
+# 2. Deep relational audit before promoting to production
+./nudelsalat check --deploy
+
+# 3. Apply pending migrations (in production, behind a deploy lock)
+./nudelsalat migrate</code></pre>
+
+        <div class="alert alert-warning">
+            <strong>Zero-downtime tips:</strong> For large tables, run index creation manually with <code>CREATE INDEX CONCURRENTLY</code> (PostgreSQL) and use a <code>SeparateDatabaseAndState</code> operation to keep Nudelsalat's state in sync.
+        </div>
+
+        <h3>The <code>nudelsalat_migrations</code> Table</h3>
+        <p>Nudelsalat creates this table automatically on the first <code>migrate</code> run (<code>Recorder::ensureSchema()</code>). It is the single source of truth for applied migrations and their integrity checksums. Never truncate or manually edit it.</p>
+    </section>
+
+    <section id="testing">
+        <h2>Testing Suite</h2>
+        <p>Nudelsalat ships with a PHPUnit-based test harness covering all subsystems. <strong>55+ tests, 0 failures</strong> verified in Docker against PostgreSQL, MySQL, and SQLite.</p>
+
+        <h3>Local (SQLite only)</h3>
+        <pre><code>./test</code></pre>
+
+        <h3>Docker (All Databases)</h3>
+        <pre><code>./test-docker
+# Spins up: postgres:15, mysql:8, php:8.2-cli with pdo_pgsql + pdo_mysql + pdo_sqlite
+# Runs: php tests/run.php
+# Output: Passed: 55+, Failed: 0</code></pre>
+
+        <h3>Test Coverage Areas</h3>
+        <div class="table-wrap">
+        <table>
+            <thead><tr><th>Test File</th><th>Coverage</th></tr></thead>
+            <tbody>
+                <tr><td><code>AutodetectorTest</code></td><td>Rename detection, field diffs, M2M junction generation, proxy skip</td></tr>
+                <tr><td><code>GraphTest</code></td><td>Topological sort, cycle detection, head/root finding, squash replacement routing</td></tr>
+                <tr><td><code>LoaderWriterTest</code></td><td>Disk loading, conflict detection, <code>require</code> re-entry, writer serialization</td></tr>
+                <tr><td><code>CommandTest</code></td><td>CLI workflow: make → migrate → show → check → sqlmigrate</td></tr>
+                <tr><td><code>ExecutorIntegrationTest</code></td><td>Full migrate/unmigrate cycle, fake flags, replacement paths, stale record pruning</td></tr>
+                <tr><td><code>BackendPortabilityTest</code></td><td>Same migrations applied against MySQL, PostgreSQL, and SQLite drivers</td></tr>
+            </tbody>
+        </table>
+        </div>
+    </section>
+
+    <section id="roadmap">
+        <h2>Roadmap</h2>
+        <div class="alert alert-success">
+            <strong>Current status:</strong> Core migration engine is complete. Full ORM layer implemented with CRUD, Aggregations, Raw SQL, Pagination, Transactions, Signals, and Validation. All tests pass across PostgreSQL, MySQL, and SQLite.
+        </div>
+
+        <h3>Implemented Features</h3>
+        <ul>
+            <li><strong>ORM Layer</strong> — Complete QuerySet implementation with fluent query builder</li>
+            <li><strong>Aggregations</strong> — Sum, Avg, Min, Max, Count with Q objects and F expressions</li>
+            <li><strong>Raw SQL</strong> — Parameterized queries with full SQL control</li>
+            <li><strong>Pagination</strong> — Built-in Paginator with metadata</li>
+            <li><strong>Transactions</strong> — Atomic transactions with manual control</li>
+            <li><strong>Signals</strong> — Pre/post hooks for save, delete, update operations</li>
+            <li><strong>Validation</strong> — Comprehensive validation rules with custom messages</li>
+            <li><strong>Abstract & Proxy Models</strong> — Full inheritance support</li>
+            <li><strong>Multi-Database Routing</strong> — PostgreSQL, MySQL, SQLite support</li>
+            <li><strong>Fixtures / Seeding</strong> — dumpdata, loaddata, and seed commands</li>
+            <li><strong>Historical Models</strong> — StateRegistry for safe data migrations</li>
+            <li><strong>Integrity Shield</strong> — SHA256 checksums prevent silent file edits</li>
+        </ul>
+
+        <h3>Upcoming</h3>
+        <ul>
+            <li><strong>Admin Interface</strong> — Dynamic administrative panel that auto-discovers models via the migration state</li>
+            <li><strong>Broader Check Constraints</strong> — Extend the validator to emit <code>CHECK (…)</code> from model-level validators</li>
+            <li><strong>Soft Deletes</strong> — Add built-in soft delete support</li>
+            <li><strong>Model Events</strong> — More granular lifecycle events and observers</li>
+        </ul>
+    </section>
+
+</main>
+
+<script src="script.js"></script>
+</body>
+</html>
